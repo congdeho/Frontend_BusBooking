@@ -1,31 +1,39 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import SearchResults from './pages/SearchResults';
-import Booking from './pages/Booking';
-import Payment from './pages/Payment';
-import PaymentResult from './pages/PaymentResult';
-import AdminLayout from './pages/admin/AdminLayout';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminBuses from './pages/admin/AdminBuses';
-import AdminPromotions from './pages/admin/AdminPromotions';
-import AdminRoutes from './pages/admin/AdminRoutes';
-import AdminBookings from './pages/admin/AdminBookings';
-import AdminPayments from './pages/admin/AdminPayments';
-import AdminNotifications from './pages/admin/AdminNotifications';
-import AdminReports from './pages/admin/AdminReports';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from 'react-router-dom'
+import Header from './components/Header'
+import Footer from './components/Footer'
+import Home from './pages/Home'
+import SearchResults from './pages/SearchResults'
+import Booking from './pages/Booking'
+import Payment from './pages/Payment'
+import PaymentResult from './pages/PaymentResult'
+import AdminLayout from './pages/admin/AdminLayout'
+import AdminUsers from './pages/admin/AdminUsers'
+import AdminBuses from './pages/admin/AdminBuses'
+import AdminPromotions from './pages/admin/AdminPromotions'
+import AdminRoutes from './pages/admin/AdminRoutes'
+import AdminBookings from './pages/admin/AdminBookings'
+import AdminPayments from './pages/admin/AdminPayments'
+import AdminNotifications from './pages/admin/AdminNotifications'
+import AdminReports from './pages/admin/AdminReports'
+import SignInPage from './pages/SignInPage'
+import SignUpPage from './pages/SignUpPage'
 
 function AppRoutes() {
-  const location = useLocation();
-  const isAdmin = location.pathname.startsWith('/admin');
+  const location = useLocation()
+  const isAdmin = location.pathname.startsWith('/admin')
   return (
     <div className="flex flex-col min-h-screen">
       {!isAdmin && <Header />}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/login" element={<SignInPage />} />
+          <Route path="/register" element={<SignUpPage />} />
           <Route path="/search" element={<SearchResults />} />
           <Route path="/booking/:busId" element={<Booking />} />
           <Route path="/payment/:busId" element={<Payment />} />
@@ -46,7 +54,7 @@ function AppRoutes() {
       </main>
       {!isAdmin && <Footer />}
     </div>
-  );
+  )
 }
 
 export default function App() {
@@ -54,5 +62,5 @@ export default function App() {
     <Router>
       <AppRoutes />
     </Router>
-  );
+  )
 }
