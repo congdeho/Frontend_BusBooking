@@ -8,11 +8,25 @@ import api from './api';
 export const login = async (email, password) => {
   try {
     const response = await api.post('/auth/login', { email, password });
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    const data = response.data || {};
+    // Response shape may be { token, user } or { token, fullName, role }
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        // build a minimal user object from returned fields
+        const user = {
+          fullName: data.fullName || '',
+          email: email,
+          role: data.role || 'CUSTOMER',
+        };
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      // notify app about auth change
+      try { window.dispatchEvent(new Event('authChanged')); } catch (e) {}
     }
-    return response.data;
+    return data;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -23,7 +37,24 @@ export const login = async (email, password) => {
 export const register = async (userData) => {
   try {
     const response = await api.post('/auth/register', userData);
-    return response.data;
+    const data = response.data || {};
+    // If backend returns token on register, store it
+    if (data.token) {
+      localStorage.setItem('authToken', data.token);
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        const user = {
+          fullName: data.fullName || userData.fullName || userData.name || '',
+          email: data.email || userData.email || '',
+          role: data.role || 'CUSTOMER',
+        };
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      // notify app about auth change
+      try { window.dispatchEvent(new Event('authChanged')); } catch (e) {}
+    }
+    return data;
   } catch (error) {
     console.error('Registration error:', error);
     throw error;
@@ -34,6 +65,7 @@ export const register = async (userData) => {
 export const logout = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
+  try { window.dispatchEvent(new Event('authChanged')); } catch (e) {}
   window.location.href = '/login';
 };
 

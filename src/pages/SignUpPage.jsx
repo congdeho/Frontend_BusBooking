@@ -2,7 +2,8 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { register as registerService } from "../services/authService";
 
 import useToggleValue from "../hooks/useToggleValue";
 import LayoutAuthentication from "../layout/LayoutAuthentication";
@@ -14,15 +15,19 @@ import { Checkbox } from "../components/checkbox";
 import { Button, ButtonGoogle } from "../components/button";
 
 const schema = yup.object({
-  name: yup.string().required("This field is required"),
+  name: yup.string().required("Trường này là bắt buộc"),
   email: yup
     .string()
-    .email("Invalid email address")
-    .required("This field is required"),
+    .email("Email không hợp lệ")
+    .required("Trường này là bắt buộc"),
   password: yup
     .string()
-    .required("This field is required")
-    .min(8, "Password must be at least 8 characters"),
+    .required("Trường này là bắt buộc")
+    .min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
+  phone: yup
+    .string()
+    .required("Trường này là bắt buộc")
+    .matches(/^[0-9]{7,15}$/, "Số điện thoại không hợp lệ"),
 });
 
 const SignUpPage = () => {
@@ -41,42 +46,46 @@ const SignUpPage = () => {
   const { value: acceptTerm, handleToggleValue: handleToggleTerm } =
     useToggleValue();
 
-  const handleSignUp = (values) => {
+  const navigate = useNavigate();
+
+  const handleSignUp = async (values) => {
     if (!acceptTerm) {
-      alert("Please agree to the Terms of Use and Privacy Policy before continuing.");
+      alert("Vui lòng đồng ý với Điều khoản và Chính sách Quyền riêng tư trước khi tiếp tục.");
       return;
     }
-    console.log("✅ Sign-up data:", values);
+    try {
+      const payload = {
+        fullName: values.name,
+        email: values.email,
+        password: values.password,
+        phone: values.phone,
+      };
+      const data = await registerService(payload);
+      // If token returned, user is logged in; otherwise redirect to login with success
+      if (data && data.token) {
+        navigate('/');
+      } else {
+        alert('Đăng ký thành công. Vui lòng đăng nhập.');
+        navigate('/login');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Đăng ký thất bại';
+      alert(msg);
+    }
   };
 
   return (
-    <LayoutAuthentication heading="Create your account">
-      <p className="mb-6 text-xs font-normal text-center lg:mb-8 lg:text-sm text-text3">
-        Already have an account?{" "}
-        <Link
-          to="/login"
-          className="font-medium underline text-primary-500 hover:text-primary-600"
-        >
-          Sign in
-        </Link>
-      </p>
-
-      <ButtonGoogle text="Sign up with Google" />
-
-      <p className="mb-4 text-xs font-normal text-center lg:text-sm lg:mb-8 text-text2">
-        Or sign up with email
-      </p>
-
+    <LayoutAuthentication heading="Đăng ký">
       <form
         onSubmit={handleSubmit(handleSignUp)}
         className="flex flex-col gap-5"
       >
         <FormGroup>
-          <Label htmlFor="name">Full Name *</Label>
+          <Label htmlFor="name">Họ tên *</Label>
           <Input
             control={control}
             name="name"
-            placeholder="John Doe"
+            placeholder="Nguyễn Văn A"
             error={errors.name?.message}
           />
         </FormGroup>
@@ -93,11 +102,11 @@ const SignUpPage = () => {
         </FormGroup>
 
         <FormGroup>
-          <Label htmlFor="password">Password *</Label>
+          <Label htmlFor="password">Mật khẩu *</Label>
           <Input
             control={control}
             name="password"
-            placeholder="Create a password"
+            placeholder="Nhập mật khẩu"
             type={showPassword ? "text" : "password"}
             error={errors.password?.message}
           >
@@ -108,6 +117,16 @@ const SignUpPage = () => {
           </Input>
         </FormGroup>
 
+        <FormGroup>
+          <Label htmlFor="phone">Số điện thoại *</Label>
+          <Input
+            control={control}
+            name="phone"
+            placeholder="0987654321"
+            error={errors.phone?.message}
+          />
+        </FormGroup>
+
         <div className="flex items-start gap-x-4 mb-5">
           <Checkbox
             name="term"
@@ -115,13 +134,13 @@ const SignUpPage = () => {
             onClick={handleToggleTerm}
           >
             <p className="flex-1 text-xs lg:text-sm text-text2">
-              I agree to the{" "}
+              Tôi đồng ý với{" "}
               <span className="underline text-secondary cursor-pointer">
-                Terms of Use
+                Điều khoản sử dụng
               </span>{" "}
-              and have read and understand the{" "}
+              và đã đọc và hiểu về{" "}
               <span className="underline text-secondary cursor-pointer">
-                Privacy Policy
+                Chính sách Quyền riêng tư
               </span>.
             </p>
           </Checkbox>
@@ -133,9 +152,23 @@ const SignUpPage = () => {
           kind="primary"
           disabled={!acceptTerm}
         >
-          Create my account
+          Đăng ký
         </Button>
       </form>
+
+      <div className="mt-4">
+        <p className="mb-4 text-xs font-normal text-center lg:text-sm lg:mb-6 text-text2">Hoặc</p>
+        <ButtonGoogle text="Tiếp tục với Google" />
+  </div>
+  <p className="mb-6 text-xs font-normal text-center lg:mb-8 lg:text-sm text-text3">
+        Đã có tài khoản?{" "}
+        <Link
+          to="/login"
+          className="font-medium underline text-primary-500 hover:text-primary-600"
+        >
+          Đăng nhập
+        </Link>
+      </p>
     </LayoutAuthentication>
   );
 };

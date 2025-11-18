@@ -33,10 +33,10 @@ const Input = (props) => {
           {...rest}
           placeholder={placeholder}
           className={classNames(
-            "w-full px-6 py-4 text-sm font-medium border rounded-xl text-text1 placeholder:text-text4 bg-transparent dark:placeholder:text-text2 dark:text-white transition-all duration-200",
+            "w-full px-6 py-4 text-sm font-medium border rounded-xl text-black placeholder:text-gray-400 bg-transparent dark:placeholder-gray-500 transition-all duration-200",
             hasError
               ? "border-error text-error focus:border-error"
-              : "border-strock text-text1 dark:border-darkStrock focus:border-primary-500",
+              : "border-strock text-black dark:border-darkStrock focus:border-primary-500",
             children ? "pr-16" : ""
           )}
         />
